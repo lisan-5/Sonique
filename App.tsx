@@ -155,6 +155,19 @@ function App() {
             />
           )}
 
+          <footer className="mt-20 mb-4 text-center text-sm text-gray-500/70 flex flex-col items-center gap-6">
+            <a
+              href="https://github.com/lisan-5"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700/60 hover:border-pink-500/50 text-gray-300 hover:text-white transition-colors duration-300 shadow-md hover:shadow-[0_0_0_1px_rgba(236,72,153,0.4),0_4px_18px_-4px_rgba(236,72,153,0.35)] backdrop-blur-sm"
+            >
+              <span className="text-sm tracking-wide font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-pink-300 to-fuchsia-300">Lisanegebriel Abay</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 opacity-80 group-hover:opacity-100 transition-opacity">
+                <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.1-1.2-1.4-1.2-1.4-1-.7.1-.7.1-.7 1.1.1 1.6 1.2 1.6 1.2 1 .1.7 1.9 2.9 1.4.1-.8.4-1.3.7-1.6-2.5-.3-5.2-1.3-5.2-5.8 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 3-.4c1 0 2 .1 3 .4 2.3-1.5 3.3-1.2 3.3-1.2.6 1.5.2 2.7.1 3 .8.8 1.2 1.9 1.2 3.2 0 4.5-2.7 5.5-5.2 5.8.4.3.8 1 .8 2v3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5Z" />
+              </svg>
+            </a>
+          </footer>
         </main>
       </div>
       {activeTrack && (

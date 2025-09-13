@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { RotatingPosters } from './RotatingPosters';
 import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 
 interface HomeHeroProps {
@@ -121,7 +122,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onExampleSelect, onSongSelec
   useEffect(()=> { setImageError(false); }, [posterIndex]);
   const sectionPadding = condensed ? 'p-6 md:p-7' : 'p-10';
   return (
-    <section className={`relative overflow-hidden rounded-3xl border border-gray-800 bg-gradient-to-br from-gray-900 via-[#1a1324] to-[#110b1a] ${sectionPadding} ${condensed ? 'mb-8' : 'mb-14'} shadow-[0_0_60px_-15px_rgba(139,92,246,0.4)]`}>
+  <section className={`relative overflow-hidden rounded-[2.2rem] border border-gray-800 bg-gradient-to-br from-[#0c0a11] via-[#160e22] to-[#09070c] ${sectionPadding} ${condensed ? 'mb-8' : 'mb-14'} shadow-[0_0_90px_-25px_rgba(168,85,247,0.65)] before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_70%_30%,rgba(236,72,153,0.08),transparent_60%)] before:pointer-events-none`}>
       {/* Animated background orbs */}
   <div className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]" aria-hidden="true">
   <div className="absolute -top-10 -left-10 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl animate-pulse" aria-hidden="true" />
@@ -164,9 +165,9 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onExampleSelect, onSongSelec
     </div>
     )}
 
-        {/* Rotating famous video poster showcase */}
-  <div className={`${condensed ? 'w-full max-w-3xl' : 'flex-1'} flex items-center justify-center`}>
-          <div ref={tiltRef} className="relative transition-transform duration-300 will-change-transform">
+  {/* Rotating famous video poster showcase (legacy card retained for now) */}
+  <div className={`${condensed ? 'w-full max-w-3xl' : 'flex-1'} flex items-center justify-center flex-col gap-10`}>
+    <div ref={tiltRef} className="relative transition-transform duration-300 will-change-transform">
           <div className="relative w-full max-w-md aspect-[16/9] rounded-3xl overflow-hidden shadow-2xl group cursor-pointer backdrop-blur-sm [transform-style:preserve-3d] bg-gradient-to-br from-gray-800 via-gray-900 to-black" onClick={() => onSongSelect(currentPoster.query)} role="group" aria-label="Featured music poster carousel">
             {/* Enhanced reactive pulse: layered concentric rings */}
             {isPlaying && !prefersReduced && (
@@ -246,6 +247,12 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onExampleSelect, onSongSelec
             </div>
           </div>
           </div>
+          {/* New circular rotating poster ring */}
+          {!condensed && (
+            <div className="w-full flex items-center justify-center mt-4">
+              <RotatingPosters posters={videoPosters} onSelect={onSongSelect} radius={200} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -271,6 +278,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onExampleSelect, onSongSelec
           40% { transform: scaleY(1); opacity:1; }
           55% { transform: scaleY(.55); opacity:.75; }
         }
+        .hero-grid-overlay:before { content:''; position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px); background-size:60px 60px; mask:radial-gradient(circle at center,rgba(0,0,0,0.9),transparent 75%); opacity:.35; pointer-events:none; }
       `}</style>
     </section>
   );
