@@ -7,9 +7,10 @@ interface ResultGridProps {
   playlist: Playlist;
   onTrackSelect: (track: Track) => void;
   onPlay?: (track: Track) => void;
+  onAddTrack?: (track: Track) => void;
 }
 
-export const ResultGrid: React.FC<ResultGridProps> = ({ playlist, onTrackSelect, onPlay }) => {
+export const ResultGrid: React.FC<ResultGridProps> = ({ playlist, onTrackSelect, onPlay, onAddTrack }) => {
   return (
     <div className="w-full">
       <div className="text-center mb-6 md:mb-8 px-2">
@@ -23,6 +24,7 @@ export const ResultGrid: React.FC<ResultGridProps> = ({ playlist, onTrackSelect,
             track={track}
             onSelect={onTrackSelect}
             onPlay={onPlay}
+            onAdd={onAddTrack}
           />
         ))}
       </div>

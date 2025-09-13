@@ -6,9 +6,10 @@ interface TrackCardProps {
   track: Track;
   onSelect: (track: Track) => void;
   onPlay?: (track: Track) => void; // unified open
+  onAdd?: (track: Track) => void; // add to user playlist
 }
 
-export const TrackCard: React.FC<TrackCardProps> = ({ track, onSelect, onPlay }) => {
+export const TrackCard: React.FC<TrackCardProps> = ({ track, onSelect, onPlay, onAdd }) => {
   const placeholderStyle = useMemo(() => {
     if (track.imageUrl) return undefined;
     const seed = (track.title + track.artist).split('').reduce((a,c)=> a + c.charCodeAt(0), 0);
@@ -24,6 +25,17 @@ export const TrackCard: React.FC<TrackCardProps> = ({ track, onSelect, onPlay })
       onClick={() => onSelect(track)}
       className="bg-gray-800 rounded-2xl p-7 sm:p-8 lg:p-10 flex flex-col items-center text-center transform hover:scale-[1.03] md:hover:scale-[1.06] transition-transform duration-300 cursor-pointer group relative shadow-xl hover:shadow-purple-700/40 min-h-[420px] sm:min-h-[460px] lg:min-h-[520px] w-full max-w-[340px] md:max-w-[380px] lg:max-w-[420px]"
     >
+      {onAdd && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onAdd(track); }}
+          aria-label="Add to playlist"
+          className="absolute top-3 left-3 z-10 w-9 h-9 rounded-full flex items-center justify-center bg-gray-900/70 border border-gray-600/60 text-gray-300 hover:text-white hover:border-pink-400/70 hover:bg-pink-600/60 backdrop-blur-sm transition-colors shadow-md"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+      )}
       {/* Hover overlay with richer description */}
       <div className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute inset-0 rounded-2xl bg-[linear-gradient(160deg,rgba(17,17,27,0.95),rgba(40,18,60,0.92)_45%,rgba(70,20,90,0.88))] backdrop-blur-sm flex flex-col justify-end p-6 sm:p-7 text-left overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(236,72,153,0.18),transparent_65%),radial-gradient(circle_at_80%_70%,rgba(139,92,246,0.25),transparent_70%)] mix-blend-screen" />
