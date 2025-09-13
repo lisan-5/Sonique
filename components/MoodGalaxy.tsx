@@ -17,14 +17,14 @@ const moods = [
 
 export const MoodGalaxy: React.FC<MoodGalaxyProps> = ({ onMoodSelect }) => {
   return (
-    <div className="text-center py-10">
-      <h2 className="text-2xl font-semibold text-gray-300 mb-6">Or get inspired by a mood...</h2>
-      <div className="flex flex-wrap justify-center gap-3">
+    <div className="text-center py-10 px-3">
+      <h2 className="text-xl sm:text-2xl font-semibold text-gray-300 mb-5 sm:mb-6">Or get inspired by a mood...</h2>
+      <div className="flex flex-wrap justify-center gap-2.5 sm:gap-3 max-w-5xl mx-auto">
         {moods.map((mood) => (
           <button
             key={mood}
             onClick={() => onMoodSelect(mood)}
-            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-full border border-gray-700 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all duration-300"
+            className="px-3 sm:px-4 py-2 bg-gray-800 text-gray-300 rounded-full border border-gray-700 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all duration-300 text-xs sm:text-sm"
           >
             {mood}
           </button>
