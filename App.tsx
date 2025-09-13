@@ -112,14 +112,15 @@ function App() {
       <div className="bg-gray-900 text-white min-h-screen font-sans relative">
         <CosmicBackdrop intensity={1} />
         <main className="container mx-auto px-4 py-8">
-          <header className="text-center mb-10">
-            <h1 className="text-5xl font-extrabold tracking-tight mb-2">
-              <button onClick={goHome} aria-label="Go home" className="group focus:outline-none">
+          <header className="mb-10 flex flex-col items-center gap-3">
+            <button onClick={goHome} aria-label="Go home" className="group focus:outline-none flex items-center gap-4">
+              <img src="/Sonique_logo.svg" alt="Sonique logo" className="w-16 h-16 drop-shadow-md group-hover:scale-105 transition-transform" />
+              <h1 className="text-5xl font-extrabold tracking-tight">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500 group-hover:from-pink-500 group-hover:to-purple-500 transition-colors">
                   Sonique
                 </span>
-              </button>
-            </h1>
+              </h1>
+            </button>
             <p className="text-xl text-gray-400">Turn your mood into music.</p>
           </header>
 
