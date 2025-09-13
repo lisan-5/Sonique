@@ -13,6 +13,7 @@ import { CosmicBackdrop } from './components/CosmicBackdrop';
 import { Playlist, Track, UserPlaylist } from './types';
 import { PulseWave } from './components/PulseWave';
 import { AddToPlaylistModal } from './components/AddToPlaylistModal';
+import { Logo } from './components/Logo';
 
 
 // Removed old modal components in favor of unified side panel.
@@ -91,17 +92,28 @@ function App() {
 
 
 
-  const handleSearch = async (searchQuery: string) => {
-    if (!searchQuery.trim()) return;
+  const handleSearch = async (searchQuery: string, opts?: { skipHistory?: boolean; ts?: string }) => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
 
     setIsLoading(true);
     setError(null);
     setPlaylist(null);
-    pushMoodHistory(searchQuery);
+    if (!opts?.skipHistory) pushMoodHistory(trimmed);
+
+    // Update URL to make session shareable (?mood=...&ts=...)
+    try {
+      const encodedMood = encodeURIComponent(trimmed).replace(/%20/g, '+');
+      const ts = opts?.ts || Date.now().toString();
+      const params = new URLSearchParams(window.location.search);
+      params.set('mood', encodedMood);
+      params.set('ts', ts);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState(null, '', newUrl);
+    } catch {}
 
     try {
-      const result = await findMusic(searchQuery);
-      // Enrich with album art asynchronously; show initial list quickly, then update.
+      const result = await findMusic(trimmed);
       setPlaylist(result);
       enrichTracksWithArt(result.tracks).then(enriched => {
         setPlaylist(prev => prev ? { ...prev, tracks: enriched } : prev);
@@ -171,7 +183,25 @@ function App() {
     setPlaylist(null);
     setError(null);
     setActiveTrack(null);
+    // Remove sharable params from URL
+    try { window.history.replaceState(null, '', window.location.pathname); } catch {}
   };
+
+  // On initial mount, parse ?mood= & ?ts= to auto-load shared session
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const moodParam = params.get('mood');
+      if (moodParam) {
+        const decodedMood = decodeURIComponent(moodParam.replace(/\+/g, ' '));
+        const ts = params.get('ts') || Date.now().toString();
+        setQuery(decodedMood);
+        // Skip history push to avoid duplicate if already in list
+        handleSearch(decodedMood, { skipHistory: true, ts });
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // User playlists operations
   const createUserPlaylist = (name: string, firstTrack: Track) => {
@@ -297,7 +327,7 @@ function App() {
               </div>
             </div>
             <button onClick={goHome} aria-label="Go home" className="group focus:outline-none flex items-center gap-4">
-              <img src="/Sonique_logo.svg" alt="Sonique logo" className="w-16 h-16 drop-shadow-md group-hover:scale-105 transition-transform" />
+              <Logo size={72} className="transition-transform group-hover:scale-105" />
               <h1 className="text-5xl font-extrabold tracking-tight">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500 group-hover:from-pink-500 group-hover:to-purple-500 transition-colors">
                   Sonique
