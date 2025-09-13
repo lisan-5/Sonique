@@ -128,16 +128,16 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onExampleSelect, onSongSelec
   <div className="absolute bottom-0 right-0 w-80 h-80 bg-pink-600/20 rounded-full blur-3xl animate-[pulse_6s_ease-in-out_infinite_alternate]" aria-hidden="true" />
       </div>
 
-      <div className={`relative z-10 flex ${condensed ? 'flex-col items-center' : 'flex-col lg:flex-row'} gap-10`}>
+  <div className={`relative z-10 flex ${condensed ? 'flex-col items-center' : 'flex-col lg:flex-row'} gap-8 md:gap-10`}>
         {/* Intro copy (hidden in condensed mode) */}
         {!condensed && (
         <div className="flex-1 min-w-[280px]">
           {!condensed && (
             <>
-              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-5 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-pink-300 to-fuchsia-400 drop-shadow-[0_4px_12px_rgba(236,72,153,0.25)]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-5 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-pink-300 to-fuchsia-400 drop-shadow-[0_4px_12px_rgba(236,72,153,0.25)]">
                 Feed Sonique a feeling a scene, memory, or aesthetic and get a curated set of atmospheric tracks.
               </h2>
-              <p className="text-[17px] text-gray-300/90 leading-relaxed max-w-xl mb-10 font-light">
+              <p className="text-base sm:text-[17px] text-gray-300/90 leading-relaxed max-w-xl mb-8 md:mb-10 font-light">
                 <span className="font-semibold text-purple-200/90">Describe</span> a mood, a moment, or a vibe—Sonique turns it into an original-feeling playlist with evocative fictional tracks.
               </p>
             </>
@@ -147,7 +147,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onExampleSelect, onSongSelec
       {!condensed && (
               <>
                 <h3 className="text-[11px] font-semibold tracking-[0.18em] text-gray-400 uppercase mb-4">Try an example mood</h3>
-                <div className="flex flex-wrap gap-2 mb-10">
+                <div className="flex flex-wrap gap-2 mb-8 md:mb-10">
                   {examples.map(ex => (
                     <button
                       key={ex}
