@@ -64,7 +64,7 @@ interface FindMusicOptions { tracks?: number; fast?: boolean; timeoutMs?: number
 
 export const findMusic = async (query: string, options: FindMusicOptions = {}): Promise<Playlist> => {
   try {
-    const { tracks = 8, fast = true, timeoutMs = 15000 } = options;
+    const { tracks = 9, fast = true, timeoutMs = 15000 } = options;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
