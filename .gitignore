@@ -1,0 +1,48 @@
+# Node dependencies
+node_modules/
+
+# Build outputs
+/dist/
+/build/
+
+# Local environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Editor settings
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Cache directories
+.cache/
+.eslintcache
+.parcel-cache/
+.turbo/
+
+# Optional lockfiles to ignore if switching managers (keep only one)
+# yarn.lock
+# pnpm-lock.yaml
+# (We KEEP package-lock.json committed.)
+
+# Misc
+*.local

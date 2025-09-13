@@ -16,7 +16,7 @@ export const ResultGrid: React.FC<ResultGridProps> = ({ playlist, onTrackSelect,
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2 leading-tight tracking-tight">{playlist.title}</h2>
         <p className="text-sm sm:text-base md:text-lg text-gray-400 max-w-3xl mx-auto px-1 md:px-2">{playlist.description}</p>
       </div>
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 xl:gap-10">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 md:gap-10 lg:gap-12 justify-items-center">
         {playlist.tracks.map((track, index) => (
           <TrackCard 
             key={`${track.title}-${track.artist}-${index}`} 

@@ -22,7 +22,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({ track, onSelect, onPlay })
   return (
     <div 
       onClick={() => onSelect(track)}
-      className="bg-gray-800 rounded-2xl p-5 sm:p-6 lg:p-7 flex flex-col items-center text-center transform hover:scale-[1.02] md:hover:scale-[1.04] transition-transform duration-300 cursor-pointer group relative shadow-xl hover:shadow-purple-700/40 min-h-[380px] sm:min-h-[400px] lg:min-h-[420px]"
+      className="bg-gray-800 rounded-2xl p-7 sm:p-8 lg:p-10 flex flex-col items-center text-center transform hover:scale-[1.03] md:hover:scale-[1.06] transition-transform duration-300 cursor-pointer group relative shadow-xl hover:shadow-purple-700/40 min-h-[420px] sm:min-h-[460px] lg:min-h-[520px] w-full max-w-[340px] md:max-w-[380px] lg:max-w-[420px]"
     >
       <div className="w-full aspect-square rounded-xl mb-5 sm:mb-6 flex items-center justify-center relative overflow-hidden" style={placeholderStyle}>
         <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 bg-[radial-gradient(circle_at_30%_30%,#a855f7,transparent_60%)]" />
