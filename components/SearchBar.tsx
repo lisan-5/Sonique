@@ -22,7 +22,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, query
   const isDisabled = isLoading || !queryValue.trim();
 
   return (
-  <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3 sm:gap-2 mb-8 w-full px-2">
+    <>
+  <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3 sm:gap-2 mb-6 w-full px-2">
       <input
         type="text"
         value={queryValue}
@@ -39,5 +40,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, query
         {isLoading ? 'Searching...' : 'Search'}
       </button>
     </form>
+  
+    </>
   );
 };

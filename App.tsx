@@ -11,6 +11,7 @@ import { enrichTracksWithArt } from './services/albumArtService';
 import { TrackSidePanel } from './components/TrackSidePanel';
 import { CosmicBackdrop } from './components/CosmicBackdrop';
 import { Playlist, Track } from './types';
+import { PulseWave } from './components/PulseWave';
 
 
 // Removed old modal components in favor of unified side panel.
@@ -23,6 +24,43 @@ function App() {
   const [activeTrack, setActiveTrack] = useState<Track | null>(null);
   const [isLyricsLoading, setIsLyricsLoading] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
+  const [moodHistory, setMoodHistory] = useState<string[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Close history popover with Escape or outside click
+  useEffect(() => {
+    if (!showHistory) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowHistory(false); };
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-history-popover]') || target.closest('[data-history-trigger]')) return;
+      setShowHistory(false);
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('mousedown', onClick);
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mousedown', onClick); };
+  }, [showHistory]);
+
+  // Load mood history on mount (no enforced limit now)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('sonique:moodHistory');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setMoodHistory(parsed);
+      }
+    } catch {}
+  }, []);
+
+  const pushMoodHistory = (value: string) => {
+    const v = value.trim();
+    if (!v) return;
+    setMoodHistory(prev => {
+      const next = [v, ...prev.filter(p => p.toLowerCase() !== v.toLowerCase())];
+      try { localStorage.setItem('sonique:moodHistory', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
 
   const handleSearch = async (searchQuery: string) => {
@@ -31,6 +69,7 @@ function App() {
     setIsLoading(true);
     setError(null);
     setPlaylist(null);
+    pushMoodHistory(searchQuery);
 
     try {
       const result = await findMusic(searchQuery);
@@ -111,8 +150,63 @@ function App() {
     <>
       <div className="bg-gray-900 text-white min-h-screen font-sans relative">
         <CosmicBackdrop intensity={1} />
-        <main className="container mx-auto px-4 py-8">
-          <header className="mb-10 flex flex-col items-center gap-3">
+  <main className="container mx-auto px-4 pt-8 pb-0">
+          <header className="mb-10 flex flex-col items-center gap-3 relative">
+            {/* History icon top-right */}
+            <div className="absolute top-0 right-0 -mt-2 -mr-1" data-history-trigger>
+              <button
+                type="button"
+                onClick={() => setShowHistory(v => !v)}
+                aria-label="Show recent moods"
+                className="relative p-2 rounded-xl bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700/60 hover:border-pink-400/60 shadow hover:shadow-[0_0_0_1px_rgba(236,72,153,0.35)] transition-colors group"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+                  className="w-6 h-6 text-gray-300 group-hover:text-white transition-colors"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l3.5 2" />
+                  <circle cx="12" cy="12" r="9" />
+                </svg>
+                {moodHistory.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-pink-500 text-[10px] leading-none px-1.5 py-1 rounded-full font-semibold text-white shadow-md">
+                    {moodHistory.length > 9 ? '9+' : moodHistory.length}
+                  </span>
+                )}
+              </button>
+              {showHistory && (
+                <div className="absolute right-0 mt-2 w-60 sm:w-72 max-h-80 overflow-y-auto rounded-xl border border-gray-700/70 bg-gray-900/95 backdrop-blur-xl shadow-xl p-4 z-20 animate-[fadeIn_.25s_ease] text-left" data-history-popover>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-semibold tracking-wider text-gray-400 uppercase">Recent Moods</h4>
+                    <button
+                      onClick={() => { setMoodHistory([]); try { localStorage.removeItem('sonique:moodHistory'); } catch {}; setShowHistory(false); }}
+                      className="text-[10px] px-2 py-1 rounded-md bg-gray-700/60 hover:bg-red-600/70 text-gray-300 hover:text-white transition-colors"
+                    >Clear</button>
+                  </div>
+                  {moodHistory.length === 0 && (
+                    <p className="text-[11px] text-gray-500 italic">Your recent moods will appear here.</p>
+                  )}
+                  <ul className="space-y-2">
+                    {moodHistory.map((m, i) => (
+                      <li key={m+ i}>
+                        <button
+                          onClick={() => { setQuery(m); handleSearch(m); setShowHistory(false); }}
+                          className="group/row w-full text-left rounded-lg px-3 py-2 bg-gray-800/60 hover:bg-gradient-to-r hover:from-purple-600/70 hover:to-pink-600/70 border border-gray-700/60 hover:border-pink-400/60 transition-all text-[12px] leading-snug text-gray-300 hover:text-white shadow-sm"
+                        >
+                          <span className="block truncate">{m}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={() => setShowHistory(false)}
+                      className="text-[11px] tracking-wide px-3 py-1.5 rounded-md bg-gray-700/60 hover:bg-gray-600/70 text-gray-300 hover:text-white transition-colors"
+                    >Close</button>
+                  </div>
+                  <style>{`@keyframes fadeIn { from { opacity:0; transform: translateY(-4px);} to { opacity:1; transform:translateY(0);} }`}</style>
+                </div>
+              )}
+            </div>
             <button onClick={goHome} aria-label="Go home" className="group focus:outline-none flex items-center gap-4">
               <img src="/Sonique_logo.svg" alt="Sonique logo" className="w-16 h-16 drop-shadow-md group-hover:scale-105 transition-transform" />
               <h1 className="text-5xl font-extrabold tracking-tight">
@@ -155,7 +249,7 @@ function App() {
             />
           )}
 
-          <footer className="mt-20 mb-4 text-center text-sm text-gray-500/70 flex flex-col items-center gap-6">
+          <footer className="mt-24 text-center text-sm text-gray-500/70 flex flex-col items-center gap-6">
             <a
               href="https://github.com/lisan-5"
               target="_blank"
@@ -169,6 +263,10 @@ function App() {
             </a>
           </footer>
         </main>
+        <div className="w-full">
+          <PulseWave className="w-full" height={90} />
+        </div>
+        
       </div>
       {activeTrack && (
         <TrackSidePanel 
