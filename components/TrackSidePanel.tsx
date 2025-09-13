@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Track } from '../types';
 
 interface TrackSidePanelProps {
@@ -9,6 +9,12 @@ interface TrackSidePanelProps {
 }
 
 export const TrackSidePanel: React.FC<TrackSidePanelProps> = ({ track, onClose, isLyricsLoading, isVideoLoading }) => {
+  const [showLyrics, setShowLyrics] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768 ? true : true; // mobile auto-show, desktop default visible
+    }
+    return true;
+  });
   const query = `${track.title} ${track.artist} official audio`;
   const embedSrc = track.videoId
     ? `https://www.youtube.com/embed/${track.videoId}?autoplay=1&rel=0`
@@ -56,36 +62,54 @@ export const TrackSidePanel: React.FC<TrackSidePanelProps> = ({ track, onClose, 
             <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{track.description}</p>
           </div>
         </div>
-        {/* Desktop lyrics panel (hidden on mobile) */}
+        {/* Desktop lyrics panel (hidden on mobile, closable) */}
         <div className="hidden md:flex flex-col md:flex-[0.35] md:max-h-full border-t md:border-t-0 border-gray-800">
-          <div className="px-5 sm:px-6 py-4 border-b border-gray-800 flex items-center justify-between">
-            <h3 className="text-sm font-semibold tracking-wide text-gray-300 uppercase">Lyrics {isLyricsLoading && <span className="text-xs text-purple-400 animate-pulse ml-1">loading…</span>}</h3>
-          </div>
-          <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4">
-            <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed min-h-[120px]">
-              {track.lyrics ? track.lyrics : (isLyricsLoading ? '' : 'Lyrics not available.')}
+          {showLyrics ? (
+            <>
+              <div className="px-5 sm:px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+                <h3 className="text-sm font-semibold tracking-wide text-gray-300 uppercase">Lyrics {isLyricsLoading && <span className="text-xs text-purple-400 animate-pulse ml-1">loading…</span>}</h3>
+                <button onClick={() => setShowLyrics(false)} aria-label="Hide lyrics" className="text-gray-400 hover:text-white text-lg leading-none px-2">✕</button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4">
+                <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed min-h-[120px]">
+                  {track.lyrics ? track.lyrics : (isLyricsLoading ? '' : 'Lyrics not available.')}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center p-6">
+              <button
+                onClick={() => setShowLyrics(true)}
+                className="px-4 py-2 rounded-lg bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700/60 hover:border-pink-400/60 text-gray-300 hover:text-white text-sm transition-colors"
+              >Show Lyrics</button>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Mobile bottom sheet for lyrics */}
+        {/* Mobile lyrics (auto-visible) */}
         <div className="md:hidden absolute left-0 right-0 bottom-0 z-20">
-          <div className="relative">
-            <input type="checkbox" id="lyrics-toggle" className="peer hidden" />
-            <div className="absolute inset-x-0 bottom-0 max-h-[65vh] translate-y-[calc(100%-3rem)] peer-checked:translate-y-0 transition-transform duration-400 ease-out bg-gray-850 bg-gray-900/98 backdrop-blur-xl border-t border-purple-800/40 rounded-t-3xl shadow-[0_-6px_30px_-8px_rgba(168,85,247,0.4)] flex flex-col overflow-hidden">
-              <label htmlFor="lyrics-toggle" className="cursor-pointer select-none px-5 pt-3 pb-2 flex items-center justify-between">
+          {showLyrics ? (
+            <div className="absolute inset-x-0 bottom-0 max-h-[65vh] translate-y-0 transition-transform duration-300 ease-out bg-gray-900/98 backdrop-blur-xl border-t border-purple-800/40 rounded-t-3xl shadow-[0_-6px_30px_-8px_rgba(168,85,247,0.4)] flex flex-col overflow-hidden">
+              <div className="px-5 pt-3 pb-2 flex items-center justify-between">
                 <span className="text-[11px] font-semibold tracking-[0.18em] uppercase text-gray-400">Lyrics {isLyricsLoading && <span className="text-[10px] text-purple-400 animate-pulse ml-1">loading…</span>}</span>
-                <span className="text-gray-400 text-xs px-2 py-1 rounded-md bg-gray-700/40">{track.artist}</span>
-              </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400 text-[11px] px-2 py-1 rounded-md bg-gray-700/40">{track.artist}</span>
+                  <button onClick={() => setShowLyrics(false)} className="text-gray-400 hover:text-white text-lg leading-none" aria-label="Hide lyrics">✕</button>
+                </div>
+              </div>
               <div className="px-5 pb-5 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700/70 scrollbar-track-transparent">
                 <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed pb-10">
                   {track.lyrics ? track.lyrics : (isLyricsLoading ? '' : 'Lyrics not available.')}
                 </div>
               </div>
-              <button onClick={onClose} className="absolute top-2 right-3 text-gray-400 hover:text-white text-xl" aria-label="Close panel">✕</button>
               <div className="absolute left-1/2 -top-3 -translate-x-1/2 w-16 h-1.5 rounded-full bg-gray-600/60" />
             </div>
-          </div>
+          ) : (
+            <div className="absolute inset-x-0 bottom-0 translate-y-[calc(100%-3.25rem)] bg-gray-900/95 backdrop-blur-xl border-t border-purple-800/30 rounded-t-3xl shadow-[0_-4px_22px_-6px_rgba(168,85,247,0.35)] px-5 pt-3 pb-3 flex items-center justify-between">
+              <span className="text-[11px] font-semibold tracking-[0.18em] uppercase text-gray-400">Lyrics</span>
+              <button onClick={() => setShowLyrics(true)} className="px-3 py-1.5 rounded-md bg-gray-700/60 hover:bg-gray-600/70 text-[11px] text-gray-300 hover:text-white transition-colors" aria-label="Show lyrics">Show</button>
+            </div>
+          )}
         </div>
         <style>{`
           @keyframes panelIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }

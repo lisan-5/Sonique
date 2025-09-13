@@ -14,6 +14,8 @@ import { Playlist, Track, UserPlaylist } from './types';
 import { PulseWave } from './components/PulseWave';
 import { AddToPlaylistModal } from './components/AddToPlaylistModal';
 import { Logo } from './components/Logo';
+import { BackgroundPulse } from './components/BackgroundPulse';
+import { GlobalVagueBackground } from './components/GlobalVagueBackground';
 
 
 // Removed old modal components in favor of unified side panel.
@@ -26,7 +28,8 @@ function App() {
   const [activeTrack, setActiveTrack] = useState<Track | null>(null);
   const [isLyricsLoading, setIsLyricsLoading] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
-  const [moodHistory, setMoodHistory] = useState<string[]>([]);
+  interface MoodHistoryEntry { value: string; pinned: boolean; addedAt: number }
+  const [moodHistory, setMoodHistory] = useState<MoodHistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [userPlaylists, setUserPlaylists] = useState<UserPlaylist[]>([]);
   const [trackToAdd, setTrackToAdd] = useState<Track | null>(null);
@@ -53,13 +56,21 @@ function App() {
     return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mousedown', onClick); };
   }, [showHistory, showPlaylistsPanel]);
 
-  // Load mood history on mount (no enforced limit now)
+  // Load mood history on mount (migrate from simple string[] to object[])
   useEffect(() => {
     try {
       const raw = localStorage.getItem('sonique:moodHistory');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setMoodHistory(parsed);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        if (parsed.length === 0) return;
+        if (typeof parsed[0] === 'string') {
+          const migrated: MoodHistoryEntry[] = parsed.map((v: string) => ({ value: v, pinned: false, addedAt: Date.now() }));
+          setMoodHistory(migrated);
+          try { localStorage.setItem('sonique:moodHistory', JSON.stringify(migrated)); } catch {}
+        } else if (parsed[0] && typeof parsed[0] === 'object' && 'value' in parsed[0]) {
+          setMoodHistory(parsed as MoodHistoryEntry[]);
+        }
       }
     } catch {}
   }, []);
@@ -80,14 +91,41 @@ function App() {
   };
 
 
+  const persistMoodHistory = (data: MoodHistoryEntry[]) => {
+    try { localStorage.setItem('sonique:moodHistory', JSON.stringify(data)); } catch {}
+  };
+
   const pushMoodHistory = (value: string) => {
     const v = value.trim();
     if (!v) return;
     setMoodHistory(prev => {
-      const next = [v, ...prev.filter(p => p.toLowerCase() !== v.toLowerCase())];
-      try { localStorage.setItem('sonique:moodHistory', JSON.stringify(next)); } catch {}
+      const existing = prev.find(p => p.value.toLowerCase() === v.toLowerCase());
+      const entry: MoodHistoryEntry = existing ? { ...existing, addedAt: Date.now() } : { value: v, pinned: false, addedAt: Date.now() };
+      const next = [entry, ...prev.filter(p => p.value.toLowerCase() !== v.toLowerCase())];
+      persistMoodHistory(next);
       return next;
     });
+  };
+
+  const togglePinMood = (value: string) => {
+    setMoodHistory(prev => {
+      const next = prev.map(e => e.value.toLowerCase() === value.toLowerCase() ? { ...e, pinned: !e.pinned } : e);
+      persistMoodHistory(next);
+      return next;
+    });
+  };
+
+  const clearUnpinnedHistory = () => {
+    setMoodHistory(prev => {
+      const kept = prev.filter(e => e.pinned);
+      if (kept.length === 0) {
+        try { localStorage.removeItem('sonique:moodHistory'); } catch {}
+        return [];
+      }
+      persistMoodHistory(kept);
+      return kept;
+    });
+    setShowHistory(false);
   };
 
 
@@ -245,13 +283,16 @@ function App() {
     setPlaylist({ title: pl.name, description: `Custom playlist • ${pl.tracks.length} tracks`, tracks: pl.tracks });
   }, [userPlaylists, viewingUserPlaylistId]);
 
+  const compactBrand = !!playlist || isLoading; // shrink & move logo when user is in results/loading state
 
   return (
     <>
-      <div className="bg-gray-900 text-white min-h-screen font-sans relative">
+      <div className="bg-gray-900 text-white min-h-screen font-sans relative overflow-hidden">
+        <GlobalVagueBackground />
         <CosmicBackdrop intensity={1} />
+        <BackgroundPulse intensity={0.9} />
   <main className="container mx-auto px-4 pt-8 pb-0">
-          <header className="mb-10 flex flex-col items-center gap-3 relative">
+          <header className={`relative ${compactBrand ? 'mb-6 flex items-center gap-3 justify-start min-h-[72px]' : 'mb-10 flex flex-col items-center gap-3'}`}>
             {/* Icons top-right: history + playlists */}
             <div className="absolute top-0 right-0 -mt-2 -mr-1 flex items-start gap-2">
               <div data-history-trigger>
@@ -279,8 +320,9 @@ function App() {
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="text-xs font-semibold tracking-wider text-gray-400 uppercase">Recent Moods</h4>
                       <button
-                        onClick={() => { setMoodHistory([]); try { localStorage.removeItem('sonique:moodHistory'); } catch {}; setShowHistory(false); }}
+                        onClick={clearUnpinnedHistory}
                         className="text-[10px] px-2 py-1 rounded-md bg-gray-700/60 hover:bg-red-600/70 text-gray-300 hover:text-white transition-colors"
+                        title="Clears only unpinned moods"
                       >Clear</button>
                     </div>
                     {moodHistory.length === 0 && (
@@ -288,12 +330,24 @@ function App() {
                     )}
                     <ul className="space-y-2">
                       {moodHistory.map((m, i) => (
-                        <li key={m+ i}>
+                        <li key={m.value + i} className="group flex items-stretch">
                           <button
-                            onClick={() => { setQuery(m); handleSearch(m); setShowHistory(false); }}
-                            className="group/row w-full text-left rounded-lg px-3 py-2 bg-gray-800/60 hover:bg-gradient-to-r hover:from-purple-600/70 hover:to-pink-600/70 border border-gray-700/60 hover:border-pink-400/60 transition-all text-[12px] leading-snug text-gray-300 hover:text-white shadow-sm"
+                            onClick={() => { setQuery(m.value); handleSearch(m.value); setShowHistory(false); }}
+                            className="flex-1 text-left rounded-l-lg px-3 py-2 bg-gray-800/60 hover:bg-gradient-to-r hover:from-purple-600/70 hover:to-pink-600/70 border border-r-0 border-gray-700/60 hover:border-pink-400/60 transition-all text-[12px] leading-snug text-gray-300 hover:text-white shadow-sm"
                           >
-                            <span className="block truncate">{m}</span>
+                            <span className="block truncate">{m.value}</span>
+                          </button>
+                          <button
+                            onClick={() => togglePinMood(m.value)}
+                            aria-label={m.pinned ? 'Unpin mood' : 'Pin mood'}
+                            className={`px-2 py-2 rounded-r-lg border border-l-0 border-gray-700/60 transition-all text-[12px] flex items-center justify-center ${m.pinned ? 'bg-pink-600/80 text-white hover:bg-pink-500/80 border-pink-400/60' : 'bg-gray-800/60 text-gray-300 hover:text-white hover:bg-gray-700/60 hover:border-pink-300/50'}`}
+                            title={m.pinned ? 'Unpin' : 'Pin'}
+                          >
+                            {m.pinned ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M9.7 2.3a1 1 0 0 1 1 .2l2.8 2.8 2-.7a1 1 0 0 1 1 .3l1.9 1.9a1 1 0 0 1-.3 1l-.7 2 2.8 2.8a1 1 0 0 1 0 1.4l-3.2 3.2a1 1 0 0 1-1.4 0l-2.8-2.8-2 .7a1 1 0 0 1-1-.3l-1.9-1.9a1 1 0 0 1-.3-1l.7-2L6 9.5a1 1 0 0 1 0-1.4l3.2-3.2a1 1 0 0 1 .5-.3Z"/></svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9.5 2.5 14 7l3-1 2 2-1 3 4.5 4.5-3 3L15 14.9l-3 1-2-2 1-3L6.6 6.5l2.9-2.9Z"/></svg>
+                            )}
                           </button>
                         </li>
                       ))}
@@ -326,15 +380,25 @@ function App() {
                 </button>
               </div>
             </div>
-            <button onClick={goHome} aria-label="Go home" className="group focus:outline-none flex items-center gap-4">
-              <Logo size={72} className="transition-transform group-hover:scale-105" />
-              <h1 className="text-5xl font-extrabold tracking-tight">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500 group-hover:from-pink-500 group-hover:to-purple-500 transition-colors">
-                  Sonique
-                </span>
-              </h1>
-            </button>
-            <p className="text-xl text-gray-400">Turn your mood into music.</p>
+            {!compactBrand && (
+              <>
+                <button onClick={goHome} aria-label="Go home" className="group focus:outline-none flex items-center gap-4">
+                  <Logo size={72} className="transition-transform group-hover:scale-105" />
+                  <h1 className="text-5xl font-extrabold tracking-tight">
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500 group-hover:from-pink-500 group-hover:to-purple-500 transition-colors">
+                      Sonique
+                    </span>
+                  </h1>
+                </button>
+                <p className="text-xl text-gray-400">Turn your mood into music.</p>
+              </>
+            )}
+            {compactBrand && (
+              <button onClick={goHome} aria-label="Go home" className="group focus:outline-none inline-flex items-center gap-2 pr-28">
+                <Logo size={44} className="transition-transform group-hover:scale-110" />
+                <span className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500 group-hover:from-pink-500 group-hover:to-purple-400 transition-colors">Sonique</span>
+              </button>
+            )}
           </header>
 
           <SearchBar 
